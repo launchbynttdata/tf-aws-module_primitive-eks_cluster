@@ -244,6 +244,7 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_name"></a> [name](#output\_name) | Cluster name. |
 | <a name="output_id"></a> [id](#output\_id) | Cluster name (resource ID). |
 | <a name="output_arn"></a> [arn](#output\_arn) | Cluster ARN. |
 | <a name="output_endpoint"></a> [endpoint](#output\_endpoint) | Cluster API server endpoint. |

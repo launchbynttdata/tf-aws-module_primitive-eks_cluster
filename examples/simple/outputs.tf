@@ -14,7 +14,7 @@ output "resource_name" {
 
 output "cluster_name" {
   description = "EKS cluster name (for test validation)"
-  value       = module.eks_cluster.id
+  value       = module.eks_cluster.name
 }
 
 output "cluster_arn" {

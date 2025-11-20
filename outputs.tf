@@ -3,6 +3,11 @@
 # Outputs
 ############################
 
+output "name" {
+  description = "Cluster name."
+  value       = aws_eks_cluster.this.name
+}
+
 output "id" {
   description = "Cluster name (resource ID)."
   value       = aws_eks_cluster.this.id
