@@ -23,7 +23,7 @@ func TestComposableComplete(t *testing.T, ctx types.TestContext) {
 	eksClient := GetAWSEKSClient(t)
 
 	t.Run("TestClusterExists", func(t *testing.T) {
-		clusterName := terraform.Output(t, ctx.TerratestTerraformOptions(), "cluster_name")
+		clusterName := terraform.OutputContext(t, context.Background(), ctx.TerratestTerraformOptions(), "cluster_name")
 		output, err := eksClient.DescribeCluster(context.TODO(), &eks.DescribeClusterInput{
 			Name: &clusterName,
 		})
@@ -33,7 +33,7 @@ func TestComposableComplete(t *testing.T, ctx types.TestContext) {
 	})
 
 	t.Run("TestClusterProperties", func(t *testing.T) {
-		clusterName := terraform.Output(t, ctx.TerratestTerraformOptions(), "cluster_name")
+		clusterName := terraform.OutputContext(t, context.Background(), ctx.TerratestTerraformOptions(), "cluster_name")
 		output, err := eksClient.DescribeCluster(context.TODO(), &eks.DescribeClusterInput{
 			Name: &clusterName,
 		})
@@ -45,48 +45,48 @@ func TestComposableComplete(t *testing.T, ctx types.TestContext) {
 		assert.Equal(t, "ACTIVE", string(cluster.Status))
 		assert.NotEmpty(t, *cluster.Endpoint)
 
-		expectedVersion := terraform.Output(t, ctx.TerratestTerraformOptions(), "cluster_version")
+		expectedVersion := terraform.OutputContext(t, context.Background(), ctx.TerratestTerraformOptions(), "cluster_version")
 		assert.Equal(t, expectedVersion, *cluster.Version)
 
 		assert.NotNil(t, cluster.ResourcesVpcConfig)
 		assert.NotEmpty(t, cluster.ResourcesVpcConfig.VpcId)
 		assert.NotEmpty(t, cluster.ResourcesVpcConfig.SubnetIds)
 
-		tags := terraform.OutputMap(t, ctx.TerratestTerraformOptions(), "cluster_tags")
+		tags := terraform.OutputMapContext(t, context.Background(), ctx.TerratestTerraformOptions(), "cluster_tags")
 		for key, value := range tags {
 			assert.Equal(t, value, cluster.Tags[key])
 		}
 	})
 
 	t.Run("TestClusterRoleArn", func(t *testing.T) {
-		clusterName := terraform.Output(t, ctx.TerratestTerraformOptions(), "cluster_name")
+		clusterName := terraform.OutputContext(t, context.Background(), ctx.TerratestTerraformOptions(), "cluster_name")
 		output, err := eksClient.DescribeCluster(context.TODO(), &eks.DescribeClusterInput{
 			Name: &clusterName,
 		})
 		require.NoErrorf(t, err, errDescribeClusterFmt, clusterName)
 
-		expectedRoleArn := terraform.Output(t, ctx.TerratestTerraformOptions(), "cluster_role_arn")
+		expectedRoleArn := terraform.OutputContext(t, context.Background(), ctx.TerratestTerraformOptions(), "cluster_role_arn")
 		assert.Equal(t, expectedRoleArn, *output.Cluster.RoleArn)
 	})
 }
 
-func TestModuleOutputs(t *testing.T, ctx types.TestContext) {
+func TestComposableModuleOutputs(t *testing.T, ctx types.TestContext) {
 	terraformOptions := ctx.TerratestTerraformOptions()
 	eksClient := GetAWSEKSClient(t)
 
 	// Get cluster name and fetch details from AWS API
-	clusterName := terraform.Output(t, terraformOptions, "cluster_name")
+	clusterName := terraform.OutputContext(t, context.Background(), terraformOptions, "cluster_name")
 	cluster := GetClusterFromAWS(t, eksClient, clusterName)
 
 	t.Run("TestResourceId", func(t *testing.T) {
-		resourceId := terraform.Output(t, terraformOptions, "resource_id")
+		resourceId := terraform.OutputContext(t, context.Background(), terraformOptions, "resource_id")
 		assert.NotEmpty(t, resourceId)
 		// Verify output matches actual cluster name in AWS
 		assert.Equal(t, *cluster.Name, resourceId)
 	})
 
 	t.Run("TestResourceName", func(t *testing.T) {
-		resourceName := terraform.Output(t, terraformOptions, "resource_name")
+		resourceName := terraform.OutputContext(t, context.Background(), terraformOptions, "resource_name")
 		assert.NotEmpty(t, resourceName)
 		// Verify output matches actual cluster name in AWS
 		assert.Equal(t, *cluster.Name, resourceName)
@@ -99,7 +99,7 @@ func TestModuleOutputs(t *testing.T, ctx types.TestContext) {
 	})
 
 	t.Run("TestClusterArn", func(t *testing.T) {
-		arn := terraform.Output(t, terraformOptions, "cluster_arn")
+		arn := terraform.OutputContext(t, context.Background(), terraformOptions, "cluster_arn")
 		assert.NotEmpty(t, arn)
 		assert.Contains(t, arn, "arn:aws:eks:")
 		// Verify output matches actual ARN from AWS API
@@ -107,7 +107,7 @@ func TestModuleOutputs(t *testing.T, ctx types.TestContext) {
 	})
 
 	t.Run("TestClusterEndpoint", func(t *testing.T) {
-		endpoint := terraform.Output(t, terraformOptions, "cluster_endpoint")
+		endpoint := terraform.OutputContext(t, context.Background(), terraformOptions, "cluster_endpoint")
 		assert.NotEmpty(t, endpoint)
 		assert.Contains(t, endpoint, "https://")
 		// Verify output matches actual endpoint from AWS API
@@ -115,7 +115,7 @@ func TestModuleOutputs(t *testing.T, ctx types.TestContext) {
 	})
 
 	t.Run("TestClusterVersion", func(t *testing.T) {
-		version := terraform.Output(t, terraformOptions, "cluster_version")
+		version := terraform.OutputContext(t, context.Background(), terraformOptions, "cluster_version")
 		assert.NotEmpty(t, version)
 		assert.Equal(t, "1.34", version)
 		// Verify output matches actual version from AWS API
@@ -123,7 +123,7 @@ func TestModuleOutputs(t *testing.T, ctx types.TestContext) {
 	})
 
 	t.Run("TestClusterSecurityGroupId", func(t *testing.T) {
-		sgId := terraform.Output(t, terraformOptions, "cluster_security_group_id")
+		sgId := terraform.OutputContext(t, context.Background(), terraformOptions, "cluster_security_group_id")
 		assert.NotEmpty(t, sgId)
 		assert.Contains(t, sgId, "sg-")
 		// Verify output matches actual security group from AWS API
@@ -131,7 +131,7 @@ func TestModuleOutputs(t *testing.T, ctx types.TestContext) {
 	})
 
 	t.Run("TestClusterRoleArn", func(t *testing.T) {
-		roleArn := terraform.Output(t, terraformOptions, "cluster_role_arn")
+		roleArn := terraform.OutputContext(t, context.Background(), terraformOptions, "cluster_role_arn")
 		assert.NotEmpty(t, roleArn)
 		assert.Contains(t, roleArn, "arn:aws:iam:")
 		assert.Contains(t, roleArn, ":role/")
@@ -140,7 +140,7 @@ func TestModuleOutputs(t *testing.T, ctx types.TestContext) {
 	})
 
 	t.Run("TestResourceNamesGenerated", func(t *testing.T) {
-		resourceNames := terraform.OutputMap(t, terraformOptions, "resource_names_generated")
+		resourceNames := terraform.OutputMapContext(t, context.Background(), terraformOptions, "resource_names_generated")
 		assert.NotEmpty(t, resourceNames)
 		assert.Contains(t, resourceNames, "eks_cluster")
 		assert.Contains(t, resourceNames, "iam_role")

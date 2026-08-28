@@ -207,12 +207,6 @@ This module includes validation rules to ensure secure and compliant cluster con
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.5 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.100 |
 
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
-
 ## Modules
 
 No modules.
@@ -227,35 +221,35 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_name"></a> [name](#input\_name) | Cluster name. | `string` | n/a | yes |
-| <a name="input_role_arn"></a> [role\_arn](#input\_role\_arn) | IAM role ARN that EKS uses to manage other AWS services. | `string` | n/a | yes |
-| <a name="input_kubernetes_version"></a> [kubernetes\_version](#input\_kubernetes\_version) | Desired Kubernetes control-plane version (e.g., 1.30). Null lets EKS choose latest default. | `string` | `null` | no |
-| <a name="input_enabled_cluster_log_types"></a> [enabled\_cluster\_log\_types](#input\_enabled\_cluster\_log\_types) | EKS control-plane log types to enable. Valid: api, audit, authenticator, controllerManager, scheduler. | `list(string)` | `[]` | no |
-| <a name="input_vpc_config"></a> [vpc\_config](#input\_vpc\_config) | VPC configuration for the cluster endpoint and networking.<br/>Required: subnet\_ids.<br/>Optional: security\_group\_ids, endpoint\_private\_access, endpoint\_public\_access, public\_access\_cidrs. | <pre>object({<br/>    subnet_ids              = list(string)<br/>    security_group_ids      = optional(list(string))<br/>    endpoint_private_access = optional(bool)<br/>    endpoint_public_access  = optional(bool)<br/>    public_access_cidrs     = optional(list(string))<br/>  })</pre> | n/a | yes |
-| <a name="input_kubernetes_network_config"></a> [kubernetes\_network\_config](#input\_kubernetes\_network\_config) | Kubernetes network settings. ip\_family: IPV4 or IPV6.<br/>service\_ipv4\_cidr is optional (only for IPV4 clusters). | <pre>object({<br/>    ip_family         = optional(string) # "IPV4" | "IPV6"<br/>    service_ipv4_cidr = optional(string)<br/>  })</pre> | `null` | no |
-| <a name="input_encryption_config"></a> [encryption\_config](#input\_encryption\_config) | EKS secret encryption config. List of rules.<br/>Each item: { provider\_key\_arn = KMS key ARN, resources = list of resource types, typically ["secrets"] }. | <pre>list(object({<br/>    provider_key_arn = string<br/>    resources        = list(string)<br/>  }))</pre> | `[]` | no |
 | <a name="input_access_config"></a> [access\_config](#input\_access\_config) | Cluster access configuration.<br/>authentication\_mode: CONFIG\_MAP, API\_AND\_CONFIG\_MAP, or API.<br/>bootstrap\_cluster\_creator\_admin\_permissions: bool. | <pre>object({<br/>    authentication_mode                         = optional(string)<br/>    bootstrap_cluster_creator_admin_permissions = optional(bool)<br/>  })</pre> | `null` | no |
-| <a name="input_outpost_config"></a> [outpost\_config](#input\_outpost\_config) | For EKS on Outposts. Typical fields:<br/>- control\_plane\_instance\_type (e.g., m5.large)<br/>- outpost\_arns (list of Outpost ARNs) | <pre>object({<br/>    control_plane_instance_type = string<br/>    outpost_arns                = list(string)<br/>  })</pre> | `null` | no |
 | <a name="input_bootstrap_self_managed_addons"></a> [bootstrap\_self\_managed\_addons](#input\_bootstrap\_self\_managed\_addons) | Whether to let EKS create and manage default self-managed add-ons (vpc-cni, coredns, kube-proxy) on cluster creation. | `bool` | `null` | no |
+| <a name="input_enabled_cluster_log_types"></a> [enabled\_cluster\_log\_types](#input\_enabled\_cluster\_log\_types) | EKS control-plane log types to enable. Valid: api, audit, authenticator, controllerManager, scheduler. | `list(string)` | `[]` | no |
+| <a name="input_encryption_config"></a> [encryption\_config](#input\_encryption\_config) | EKS secret encryption config. List of rules.<br/>Each item: { provider\_key\_arn = KMS key ARN, resources = list of resource types, typically ["secrets"] }. | <pre>list(object({<br/>    provider_key_arn = string<br/>    resources        = list(string)<br/>  }))</pre> | `[]` | no |
+| <a name="input_kubernetes_network_config"></a> [kubernetes\_network\_config](#input\_kubernetes\_network\_config) | Kubernetes network settings. ip\_family: IPV4 or IPV6.<br/>service\_ipv4\_cidr is optional (only for IPV4 clusters). | <pre>object({<br/>    ip_family         = optional(string) # "IPV4" | "IPV6"<br/>    service_ipv4_cidr = optional(string)<br/>  })</pre> | `null` | no |
+| <a name="input_kubernetes_version"></a> [kubernetes\_version](#input\_kubernetes\_version) | Desired Kubernetes control-plane version (e.g., 1.30). Null lets EKS choose latest default. | `string` | `null` | no |
+| <a name="input_name"></a> [name](#input\_name) | Cluster name. | `string` | n/a | yes |
+| <a name="input_outpost_config"></a> [outpost\_config](#input\_outpost\_config) | For EKS on Outposts. Typical fields:<br/>- control\_plane\_instance\_type (e.g., m5.large)<br/>- outpost\_arns (list of Outpost ARNs) | <pre>object({<br/>    control_plane_instance_type = string<br/>    outpost_arns                = list(string)<br/>  })</pre> | `null` | no |
+| <a name="input_role_arn"></a> [role\_arn](#input\_role\_arn) | IAM role ARN that EKS uses to manage other AWS services. | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to the cluster. | `map(string)` | `{}` | no |
 | <a name="input_timeouts"></a> [timeouts](#input\_timeouts) | Optional timeouts for create/update/delete. | <pre>object({<br/>    create = optional(string)<br/>    update = optional(string)<br/>    delete = optional(string)<br/>  })</pre> | `null` | no |
+| <a name="input_vpc_config"></a> [vpc\_config](#input\_vpc\_config) | VPC configuration for the cluster endpoint and networking.<br/>Required: subnet\_ids.<br/>Optional: security\_group\_ids, endpoint\_private\_access, endpoint\_public\_access, public\_access\_cidrs. | <pre>object({<br/>    subnet_ids              = list(string)<br/>    security_group_ids      = optional(list(string))<br/>    endpoint_private_access = optional(bool)<br/>    endpoint_public_access  = optional(bool)<br/>    public_access_cidrs     = optional(list(string))<br/>  })</pre> | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_name"></a> [name](#output\_name) | Cluster name. |
-| <a name="output_id"></a> [id](#output\_id) | Cluster name (resource ID). |
 | <a name="output_arn"></a> [arn](#output\_arn) | Cluster ARN. |
-| <a name="output_endpoint"></a> [endpoint](#output\_endpoint) | Cluster API server endpoint. |
 | <a name="output_certificate_authority_data"></a> [certificate\_authority\_data](#output\_certificate\_authority\_data) | Base64-encoded certificate data required to communicate with the cluster. |
-| <a name="output_status"></a> [status](#output\_status) | Cluster status. |
-| <a name="output_version"></a> [version](#output\_version) | Actual Kubernetes version running on the control plane. |
-| <a name="output_platform_version"></a> [platform\_version](#output\_platform\_version) | EKS platform version. |
-| <a name="output_cluster_security_group_id"></a> [cluster\_security\_group\_id](#output\_cluster\_security\_group\_id) | Cluster security group ID created by EKS. |
 | <a name="output_cluster_primary_security_group_id"></a> [cluster\_primary\_security\_group\_id](#output\_cluster\_primary\_security\_group\_id) | Primary security group ID for the cluster. |
+| <a name="output_cluster_security_group_id"></a> [cluster\_security\_group\_id](#output\_cluster\_security\_group\_id) | Cluster security group ID created by EKS. |
+| <a name="output_endpoint"></a> [endpoint](#output\_endpoint) | Cluster API server endpoint. |
+| <a name="output_id"></a> [id](#output\_id) | Cluster name (resource ID). |
 | <a name="output_identity_oidc_issuer"></a> [identity\_oidc\_issuer](#output\_identity\_oidc\_issuer) | OIDC issuer URL if OIDC is enabled. |
+| <a name="output_name"></a> [name](#output\_name) | Cluster name. |
+| <a name="output_platform_version"></a> [platform\_version](#output\_platform\_version) | EKS platform version. |
+| <a name="output_status"></a> [status](#output\_status) | Cluster status. |
 | <a name="output_tags_all"></a> [tags\_all](#output\_tags\_all) | All tags, including provider defaults. |
+| <a name="output_version"></a> [version](#output\_version) | Actual Kubernetes version running on the control plane. |
 <!-- END_TF_DOCS -->
 
 ## Contributing

@@ -33,5 +33,5 @@ func TestEKSClusterModuleReadonly(t *testing.T) {
 		SetTestConfigFileName(infraTFVarFileNameDefault).
 		Build()
 
-	lib.RunNonDestructiveTest(t, *ctx, testimpl.TestModuleOutputs)
+	lib.RunNonDestructiveTest(t, *ctx, testimpl.TestComposableModuleOutputs)
 }
