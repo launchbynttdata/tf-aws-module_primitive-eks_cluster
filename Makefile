@@ -131,6 +131,7 @@ ifneq (,$(wildcard ./TEMPLATED_README.md))
 	mv TEMPLATED_README.md README.MD
 endif
 ifeq ($(wildcard $(COMPONENTS_DIR)/Makefile),)
+ifeq ($(wildcard $(COMPONENTS_DIR)/Makefile),)
 # golangci-lint via go tool (go.mod tool directive)
 GO ?= go
 GOLANGCI_LINT := $(GO) tool golangci-lint
