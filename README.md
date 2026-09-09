@@ -7,198 +7,6 @@
 
 This Terraform module creates and manages an AWS EKS (Elastic Kubernetes Service) cluster. It provides a primitive-level interface to the `aws_eks_cluster` resource with comprehensive configuration options for VPC integration, encryption, access control, logging, and network configuration.
 
-## Pre-Commit hooks
-
-[.pre-commit-config.yaml](.pre-commit-config.yaml) file defines certain `pre-commit` hooks that are relevant to terraform, golang and common linting tasks. There are no custom hooks added.
-
-`commitlint` hook enforces commit message in certain format. The commit contains the following structural elements, to communicate intent to the consumers of your commit messages:
-
-- **fix**: a commit of the type `fix` patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
-- **feat**: a commit of the type `feat` introduces a new feature to the codebase (this correlates with MINOR in Semantic Versioning).
-- **BREAKING CHANGE**: a commit that has a footer `BREAKING CHANGE:`, or appends a `!` after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
-footers other than BREAKING CHANGE: <description> may be provided and follow a convention similar to git trailer format.
-- **build**: a commit of the type `build` adds changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
-- **chore**: a commit of the type `chore` adds changes that don't modify src or test files
-- **ci**: a commit of the type `ci` adds changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
-- **docs**: a commit of the type `docs` adds documentation only changes
-- **perf**: a commit of the type `perf` adds code change that improves performance
-- **refactor**: a commit of the type `refactor` adds code change that neither fixes a bug nor adds a feature
-- **revert**: a commit of the type `revert` reverts a previous commit
-- **style**: a commit of the type `style` adds code changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-- **test**: a commit of the type `test` adds missing tests or correcting existing tests
-
-Base configuration used for this project is [commitlint-config-conventional (based on the Angular convention)](https://github.com/conventional-changelog/commitlint/tree/master/@commitlint/config-conventional#type-enum)
-
-If you are a developer using vscode, [this](https://marketplace.visualstudio.com/items?itemName=joshbolduc.commitlint) plugin may be helpful.
-
-`detect-secrets-hook` prevents new secrets from being introduced into the baseline. TODO: INSERT DOC LINK ABOUT HOOKS
-
-In order for `pre-commit` hooks to work properly
-
-- You need to have the pre-commit package manager installed. [Here](https://pre-commit.com/#install) are the installation instructions.
-- `pre-commit` would install all the hooks when commit message is added by default except for `commitlint` hook. `commitlint` hook would need to be installed manually using the command below
-
-```
-pre-commit install --hook-type commit-msg
-```
-
-## To test the resource group module locally
-
-1. For development/enhancements to this module locally, you'll need to install all of its components. This is controlled by the `configure` target in the project's [`Makefile`](./Makefile). Before you can run `configure`, familiarize yourself with the variables in the `Makefile` and ensure they're pointing to the right places.
-
-```
-make configure
-```
-
-This adds in several files and directories that are ignored by `git`. They expose many new Make targets.
-
-2. _THIS STEP APPLIES ONLY TO MICROSOFT AZURE. IF YOU ARE USING A DIFFERENT PLATFORM PLEASE SKIP THIS STEP._ The first target you care about is `env`. This is the common interface for setting up environment variables. The values of the environment variables will be used to authenticate with cloud provider from local development workstation.
-
-`make configure` command will bring down `azure_env.sh` file on local workstation. Devloper would need to modify this file, replace the environment variable values with relevant values.
-
-These environment variables are used by `terratest` integration suit.
-
-Service principle used for authentication(value of ARM_CLIENT_ID) should have below privileges on resource group within the subscription.
-
-```
-"Microsoft.Resources/subscriptions/resourceGroups/write"
-"Microsoft.Resources/subscriptions/resourceGroups/read"
-"Microsoft.Resources/subscriptions/resourceGroups/delete"
-```
-
-Then run this make target to set the environment variables on developer workstation.
-
-```
-make env
-```
-
-3. The first target you care about is `check`.
-
-**Pre-requisites**
-Before running this target it is important to ensure that, developer has created files mentioned below on local workstation under root directory of git repository that contains code for primitives/segments. Note that these files are `azure` specific. If primitive/segment under development uses any other cloud provider than azure, this section may not be relevant.
-
-- A file named `provider.tf` with contents below
-
-```
-provider "azurerm" {
-  features {}
-}
-```
-
-- A file named `terraform.tfvars` which contains key value pair of variables used.
-
-Note that since these files are added in `gitignore` they would not be checked in into primitive/segment's git repo.
-
-After creating these files, for running tests associated with the primitive/segment, run
-
-```
-make check
-```
-
-If `make check` target is successful, developer is good to commit the code to primitive/segment's git repo.
-
-`make check` target
-
-- runs `terraform commands` to `lint`,`validate` and `plan` terraform code.
-- runs `conftests`. `conftests` make sure `policy` checks are successful.
-- runs `terratest`. This is integration test suit.
-- runs `opa` tests
-- runs `go lint` tests
-
-## Features
-
-- **Comprehensive EKS Configuration**: Support for all major EKS cluster configuration options
-- **VPC Integration**: Configurable VPC, subnet, and security group associations
-- **Encryption**: Optional KMS encryption for cluster secrets
-- **Access Control**: Configurable API endpoint access (public, private, or both)
-- **Logging**: Support for all EKS control plane logging types
-- **Network Configuration**: Configurable Kubernetes network settings (service and pod CIDR)
-- **Outpost Support**: Configuration options for AWS Outposts
-- **Canonical Tagging**: Automatic tagging with `provisioner=Terraform`
-
-## Usage
-
-### Minimal Example
-
-```hcl
-module "eks_cluster" {
-  source = "git::https://github.com/launchbynttdata/tf-aws-module_primitive-eks_cluster.git?ref=1.0.0"
-
-  name               = "my-eks-cluster"
-  role_arn           = "arn:aws:iam::123456789012:role/eks-cluster-role"
-  kubernetes_version = "1.31"
-
-  vpc_config = {
-    subnet_ids = ["subnet-abc123", "subnet-def456"]
-  }
-
-  tags = {
-    Environment = "development"
-    Team        = "platform"
-  }
-}
-```
-
-### Complete Example
-
-```hcl
-module "eks_cluster" {
-  source = "git::https://github.com/launchbynttdata/tf-aws-module_primitive-eks_cluster.git?ref=1.0.0"
-
-  name               = "my-production-cluster"
-  role_arn           = "arn:aws:iam::123456789012:role/eks-cluster-role"
-  kubernetes_version = "1.31"
-
-  vpc_config = {
-    subnet_ids              = ["subnet-abc123", "subnet-def456"]
-    security_group_ids      = ["sg-12345678"]
-    endpoint_private_access = true
-    endpoint_public_access  = true
-    public_access_cidrs     = ["0.0.0.0/0"]
-  }
-
-  encryption_config = {
-    provider = {
-      key_arn = "arn:aws:kms:us-west-2:123456789012:key/12345678-1234-1234-1234-123456789012"
-    }
-    resources = ["secrets"]
-  }
-
-  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
-
-  kubernetes_network_config = {
-    service_ipv4_cidr = "172.20.0.0/16"
-    ip_family         = "ipv4"
-  }
-
-  access_config = {
-    authentication_mode                         = "API_AND_CONFIG_MAP"
-    bootstrap_cluster_creator_admin_permissions = true
-  }
-
-  tags = {
-    Environment = "production"
-    Team        = "platform"
-    CostCenter  = "engineering"
-  }
-}
-```
-
-For additional examples, see the [examples](./examples) directory:
-- [Minimal](./examples/minimal) - Basic cluster configuration
-- [Complete](./examples/complete) - Comprehensive configuration with all features
-- [Simple](./examples/simple) - Balanced configuration for integration testing
-- [Private Endpoint](./examples/private-endpoint) - Private-only API endpoint access
-
-## Validation
-
-This module includes validation rules to ensure secure and compliant cluster configurations:
-
-- Kubernetes version must be 1.31 or higher
-- At least 2 subnets must be specified in `vpc_config`
-- If encryption is enabled, at least one resource type must be specified
-- If Outpost configuration is used, all required fields must be provided
-
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -252,68 +60,159 @@ No modules.
 | <a name="output_version"></a> [version](#output\_version) | Actual Kubernetes version running on the control plane. |
 <!-- END_TF_DOCS -->
 
-## Contributing
+## Module Development
 
-Contributions are welcome! Please see our [contributing guidelines](CONTRIBUTING.md) for details.
+### Pre-Requisites
 
-## License
+The following commands should be available on your system:
 
-Apache 2.0 Licensed. See [LICENSE](LICENSE) for full details.
+- `asdf` or `mise`
+- `make`
+- `python3` (for pre-commit)
 
-<!-- BEGIN_TF_DOCS -->
-## Requirements
+Additionally, your `git` user and email must be configured. Run the `make configure` command from the root of the repository to ensure that you meet these requirements.
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.5 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.100 |
+### Pre-Commit hooks
 
-## Providers
+The [.pre-commit-config.yaml](.pre-commit-config.yaml) file defines certain `pre-commit` hooks that are relevant to Terraform and Golang, as well as some common linting tasks. These will be configured for you when you run `make configure`.
 
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.100.0 |
+### Local Validation
 
-## Modules
+You should validate the changes you make to any module locally, prior to pushing your changes in a branch to GitHub.
 
-No modules.
+1. Ensure that you have run `make configure` successfully.
 
-## Resources
+2. Ensure you are signed into the appropriate cloud provider (e.g. AWS or Azure) for the module under test in your current console session.
 
-| Name | Type |
-|------|------|
-| [aws_eks_cluster.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_cluster) | resource |
+3. Run the Terraform and Golang linters with the following command:
 
-## Inputs
+```
+make lint
+```
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_access_config"></a> [access\_config](#input\_access\_config) | Cluster access configuration.<br/>authentication\_mode: CONFIG\_MAP, API\_AND\_CONFIG\_MAP, or API.<br/>bootstrap\_cluster\_creator\_admin\_permissions: bool. | <pre>object({<br/>    authentication_mode                         = optional(string)<br/>    bootstrap_cluster_creator_admin_permissions = optional(bool)<br/>  })</pre> | `null` | no |
-| <a name="input_bootstrap_self_managed_addons"></a> [bootstrap\_self\_managed\_addons](#input\_bootstrap\_self\_managed\_addons) | Whether to let EKS create and manage default self-managed add-ons (vpc-cni, coredns, kube-proxy) on cluster creation. | `bool` | `null` | no |
-| <a name="input_enabled_cluster_log_types"></a> [enabled\_cluster\_log\_types](#input\_enabled\_cluster\_log\_types) | EKS control-plane log types to enable. Valid: api, audit, authenticator, controllerManager, scheduler. | `list(string)` | `[]` | no |
-| <a name="input_encryption_config"></a> [encryption\_config](#input\_encryption\_config) | EKS secret encryption config. List of rules.<br/>Each item: { provider\_key\_arn = KMS key ARN, resources = list of resource types, typically ["secrets"] }. | <pre>list(object({<br/>    provider_key_arn = string<br/>    resources        = list(string)<br/>  }))</pre> | `[]` | no |
-| <a name="input_kubernetes_network_config"></a> [kubernetes\_network\_config](#input\_kubernetes\_network\_config) | Kubernetes network settings. ip\_family: IPV4 or IPV6.<br/>service\_ipv4\_cidr is optional (only for IPV4 clusters). | <pre>object({<br/>    ip_family         = optional(string) # "IPV4" | "IPV6"<br/>    service_ipv4_cidr = optional(string)<br/>  })</pre> | `null` | no |
-| <a name="input_kubernetes_version"></a> [kubernetes\_version](#input\_kubernetes\_version) | Desired Kubernetes control-plane version (e.g., 1.30). Null lets EKS choose latest default. | `string` | `null` | no |
-| <a name="input_name"></a> [name](#input\_name) | Cluster name. | `string` | n/a | yes |
-| <a name="input_outpost_config"></a> [outpost\_config](#input\_outpost\_config) | For EKS on Outposts. Typical fields:<br/>- control\_plane\_instance\_type (e.g., m5.large)<br/>- outpost\_arns (list of Outpost ARNs) | <pre>object({<br/>    control_plane_instance_type = string<br/>    outpost_arns                = list(string)<br/>  })</pre> | `null` | no |
-| <a name="input_role_arn"></a> [role\_arn](#input\_role\_arn) | IAM role ARN that EKS uses to manage other AWS services. | `string` | n/a | yes |
-| <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to the cluster. | `map(string)` | `{}` | no |
-| <a name="input_timeouts"></a> [timeouts](#input\_timeouts) | Optional timeouts for create/update/delete. | <pre>object({<br/>    create = optional(string)<br/>    update = optional(string)<br/>    delete = optional(string)<br/>  })</pre> | `null` | no |
-| <a name="input_vpc_config"></a> [vpc\_config](#input\_vpc\_config) | VPC configuration for the cluster endpoint and networking.<br/>Required: subnet\_ids.<br/>Optional: security\_group\_ids, endpoint\_private\_access, endpoint\_public\_access, public\_access\_cidrs. | <pre>object({<br/>    subnet_ids              = list(string)<br/>    security_group_ids      = optional(list(string))<br/>    endpoint_private_access = optional(bool)<br/>    endpoint_public_access  = optional(bool)<br/>    public_access_cidrs     = optional(list(string))<br/>  })</pre> | n/a | yes |
+4. Once you have satisfied the linters, the following command will build example infrastructure in your configured cloud, run the tests, and then tear down the infrastructure it created:
 
-## Outputs
+```
+make test
+```
 
-| Name | Description |
-|------|-------------|
-| <a name="output_arn"></a> [arn](#output\_arn) | Cluster ARN. |
-| <a name="output_certificate_authority_data"></a> [certificate\_authority\_data](#output\_certificate\_authority\_data) | Base64-encoded certificate data required to communicate with the cluster. |
-| <a name="output_cluster_primary_security_group_id"></a> [cluster\_primary\_security\_group\_id](#output\_cluster\_primary\_security\_group\_id) | Primary security group ID for the cluster. |
-| <a name="output_cluster_security_group_id"></a> [cluster\_security\_group\_id](#output\_cluster\_security\_group\_id) | Cluster security group ID created by EKS. |
-| <a name="output_endpoint"></a> [endpoint](#output\_endpoint) | Cluster API server endpoint. |
-| <a name="output_id"></a> [id](#output\_id) | Cluster name (resource ID). |
-| <a name="output_identity_oidc_issuer"></a> [identity\_oidc\_issuer](#output\_identity\_oidc\_issuer) | OIDC issuer URL if OIDC is enabled. |
-| <a name="output_platform_version"></a> [platform\_version](#output\_platform\_version) | EKS platform version. |
-| <a name="output_status"></a> [status](#output\_status) | Cluster status. |
-| <a name="output_tags_all"></a> [tags\_all](#output\_tags\_all) | All tags, including provider defaults. |
-| <a name="output_version"></a> [version](#output\_version) | Actual Kubernetes version running on the control plane. |
-<!-- END_TF_DOCS -->
+The pre-commit validations, as well as the `make lint` and `make test` targets, will all be performed in CI. Running these validations locally prior to opening a PR helps ensure a smooth review and merge process.
+
+### Review & Merge Process
+
+Once your change has been tested locally and your branch pushed up, open a new Pull Request for your branch to the default (main) branch of this repository.
+
+The title of your Pull Request will determine the version bump for this change, and the title must be in [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) format in order to merge. A breaking change will trigger a major version bump, a feature will trigger a minor version bump, and all other types will trigger a patch version bump.
+
+Ensure your CI workflows are passing; seek approval from teammates and address any feedback; seek any explicit approvals required by the CODEOWNERS file. You may merge the PR as soon as all requirements are met, and a new release and tag will be automatically created for you.
+
+### Automatic Updates
+
+The shared configuration and workflow files in this repository are largely managed through the [launch-terraform-skeleton](https://github.com/launchbynttdata/launch-terraform-skeleton) repository. Outside of perhaps the `.gitignore` to account for specific files being generated by certain Terraform modules (e.g. Lambda functions), there should not be much cause to update these files on a per-repo basis, and making changes to them individually is discouraged.
+
+If desired, you can check for and run these updates locally in a branch if you have the `copier` tool installed. Some example commands are included below:
+
+```
+# Check for updates, optionally checking prerelease versions
+copier check-update [--prereleases]
+
+# Run an update, using default answers if there are any. We use tasks, which requires --trust to be set.
+copier update --defaults --trust [--prereleases]
+
+# Recopy from the source, and --overwrite all templated files in the process
+copier recopy --defaults --trust --overwrite [--prereleases]
+```
+
+Automatic updates will run through a scheduled workflow, and if the post-update tests are successful, the Pull Request created will automatically merge. Conflicts in the update or failures to test may leave a Pull Request outstanding, which needs to be addressed by a Launch Engineer.
+
+## Features
+
+- **Comprehensive EKS Configuration**: Support for all major EKS cluster configuration options
+- **VPC Integration**: Configurable VPC, subnet, and security group associations
+- **Encryption**: Optional KMS encryption for cluster secrets
+- **Access Control**: Configurable API endpoint access (public, private, or both) and cluster authentication mode (`CONFIG_MAP`, `API`, or `API_AND_CONFIG_MAP`)
+- **Logging**: Support for all EKS control plane logging types
+- **Network Configuration**: Configurable Kubernetes IP family (IPv4 or IPv6) and optional service IPv4 CIDR
+- **Self-Managed Add-ons**: Optional bootstrap of default EKS add-ons (`vpc-cni`, `coredns`, `kube-proxy`)
+- **Outpost Support**: Configuration options for AWS Outposts
+- **Canonical Tagging**: Automatic tagging with `provisioner=Terraform`
+
+## Usage
+
+### Minimal Example
+
+```hcl
+module "eks_cluster" {
+  source = "git::https://github.com/launchbynttdata/tf-aws-module_primitive-eks_cluster.git?ref=1.0.0"
+
+  name               = "my-eks-cluster"
+  role_arn           = "arn:aws:iam::123456789012:role/eks-cluster-role"
+  kubernetes_version = "1.31"
+
+  vpc_config = {
+    subnet_ids = ["subnet-abc123", "subnet-def456"]
+  }
+
+  tags = {
+    Environment = "development"
+    Team        = "platform"
+  }
+}
+```
+
+### Complete Example
+
+```hcl
+module "eks_cluster" {
+  source = "git::https://github.com/launchbynttdata/tf-aws-module_primitive-eks_cluster.git?ref=1.0.0"
+
+  name               = "my-production-cluster"
+  role_arn           = "arn:aws:iam::123456789012:role/eks-cluster-role"
+  kubernetes_version = "1.31"
+
+  vpc_config = {
+    subnet_ids              = ["subnet-abc123", "subnet-def456"]
+    security_group_ids      = ["sg-12345678"]
+    endpoint_private_access = true
+    endpoint_public_access  = true
+    public_access_cidrs     = ["0.0.0.0/0"]
+  }
+
+  encryption_config = [
+    {
+      provider_key_arn = "arn:aws:kms:us-west-2:123456789012:key/12345678-1234-1234-1234-123456789012"
+      resources         = ["secrets"]
+    }
+  ]
+
+  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
+  kubernetes_network_config = {
+    service_ipv4_cidr = "172.20.0.0/16"
+    ip_family         = "IPV4"
+  }
+
+  access_config = {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
+
+  bootstrap_self_managed_addons = true
+
+  tags = {
+    Environment = "production"
+    Team        = "platform"
+    CostCenter  = "engineering"
+  }
+}
+```
+
+For additional examples, see the [examples](./examples) directory:
+- [Simple](./examples/simple) - Balanced configuration for integration testing
+
+## Validation
+
+This module includes validation rules for cluster configuration:
+
+- If `kubernetes_network_config.ip_family` is set, it must be `IPV4` or `IPV6`
+- If `access_config.authentication_mode` is set, it must be `CONFIG_MAP`, `API_AND_CONFIG_MAP`, or `API`
